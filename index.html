@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Civics Test Flashcards</title>
+<style>
+  :root {
+    --navy: #1b2a4a;
+    --navy-light: #2c3e63;
+    --red: #a5302f;
+    --green: #2e7d32;
+    --cream: #f7f4ee;
+    --ink: #1c1c1c;
+    --gray: #6b7280;
+    --border: #d8d3c7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-top: 6px solid var(--navy);
+    max-width: 640px;
+    width: 100%;
+    padding: 32px 36px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px 0;
+    color: var(--navy);
+  }
+  h2 {
+    font-size: 1.1rem;
+    color: var(--navy);
+    margin: 0 0 16px 0;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .subtitle {
+    color: var(--gray);
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+    font-family: Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- shared form/button styling ---------- */
+  input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: Helvetica, Arial, sans-serif;
+    margin-bottom: 10px;
+  }
+  button {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    background: var(--navy);
+    color: #fff;
+    transition: background 0.15s ease, opacity 0.15s ease;
+  }
+  button:hover { background: var(--navy-light); }
+  button.secondary {
+    background: transparent;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+  }
+  button.secondary:hover { background: rgba(27,42,74,0.06); }
+  button.danger { background: var(--red); }
+  button.danger:hover { background: #862726; }
+  button.success { background: var(--green); }
+  button.success:hover { background: #245e27; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.block { width: 100%; margin-bottom: 10px; text-align: left; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-row.center { justify-content: center; }
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--navy);
+    text-decoration: underline;
+    padding: 0;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  /* ---------- login screen ---------- */
+  #userList { margin: 4px 0 20px 0; }
+  #userList button {
+    display: inline-block;
+    margin: 0 6px 8px 0;
+    background: var(--cream);
+    color: var(--navy);
+    border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  #userList button:hover { background: #efe9db; }
+  .divider {
+    text-align: center;
+    color: var(--gray);
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8rem;
+    margin: 22px 0;
+    position: relative;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider::before { left: 0; }
+  .divider::after { right: 0; }
+
+  /* ---------- menu screen ---------- */
+  .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .stat-pill {
+    display: inline-block;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    color: var(--navy);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* ---------- flashcard screen ---------- */
+  .session-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    margin-bottom: 22px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--red);
+    transition: width 0.25s ease;
+  }
+  .flashcard-container { perspective: 1200px; margin-bottom: 20px; }
+  .flashcard {
+    position: relative;
+    width: 100%;
+    min-height: 300px;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease;
+    cursor: pointer;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .flashcard-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+  .flashcard-front {
+    background: #fff;
+    border: 1px solid var(--border);
+    font-size: 1.25rem;
+    line-height: 1.5;
+    color: var(--navy);
+  }
+  .flashcard-back {
+    background: var(--navy);
+    color: #fff;
+    transform: rotateY(180deg);
+    flex-direction: column;
+    overflow-y: auto;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .flashcard-back .back-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.65;
+    margin-bottom: 10px;
+  }
+  .flashcard-back ul {
+    text-align: left;
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.6;
+  }
+  .flip-hint {
+    text-align: center;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
+    color: var(--gray);
+    margin-bottom: 18px;
+  }
+  .grade-row { display: flex; gap: 12px; }
+  .grade-row button { flex: 1; padding: 14px; font-size: 1rem; }
+  .nav-row { display: flex; gap: 12px; justify-content: space-between; }
+  .nav-row button { flex: 1; }
+
+  /* ---------- stats screen ---------- */
+  .stats-summary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .stats-box {
+    flex: 1;
+    min-width: 110px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+    text-align: center;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .stats-box .num { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+  .stats-box .lbl { font-size: 0.72rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  table.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+  }
+  table.stats-table th {
+    text-align: left;
+    border-bottom: 2px solid var(--navy);
+    padding: 6px 8px;
+    color: var(--navy);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+  }
+  table.stats-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.stats-table tr:last-child td { border-bottom: none; }
+  .acc-bad { color: var(--red); font-weight: 700; }
+  .acc-good { color: var(--green); font-weight: 700; }
+  .acc-none { color: var(--gray); font-style: italic; }
+  .stats-scroll { max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; padding: 0 10px; }
+
+  /* ---------- summary screen ---------- */
+  .score-big { font-size: 2.6rem; margin: 0; color: var(--navy); font-weight: bold; text-align: center; }
+  .score-label { text-align: center; color: var(--gray); font-family: Helvetica, Arial, sans-serif; margin-bottom: 24px; }
+
+  .footer-note {
+    margin-top: 26px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.72rem;
+    color: var(--gray);
+  }
+  .guest-banner {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.78rem;
+    background: #fdf3e7;
+    border: 1px solid #e8d3ad;
+    color: #6b5119;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- ============ LOGIN SCREEN ============ -->
+  <div id="screen-login">
+    <h1>U.S. Civics Flashcards</h1>
+    <div class="subtitle">128-question bank (2025 version) &middot; state/officeholder answers set for Matthews, NC &middot; current as of September 2026</div>
+
+    <h2>Who's studying?</h2>
+    <input type="text" id="loginName" placeholder="Type your name" maxlength="30">
+    <button onclick="loginOrRegister()">Log In / Register</button>
+
+    <div id="userListWrap" class="hidden">
+      <div class="divider">or pick a saved name</div>
+      <div id="userList"></div>
+    </div>
+
+    <div class="divider">or</div>
+    <button class="secondary block" style="width:100%; text-align:center;" onclick="startGuest()">Continue as Guest (no login, no tracking)</button>
+
+    <div class="footer-note">Logging in just labels your progress with a name so it doesn't mix with anyone else's on this device &mdash; there's no password. Guest mode skips grading entirely; you just flip cards.</div>
+  </div>
+
+  <!-- ============ MENU SCREEN ============ -->
+  <div id="screen-menu" class="hidden">
+    <div class="menu-header">
+      <h1 id="menuGreeting">Hi!</h1>
+      <button class="link-btn" onclick="goToLogin()">Switch user</button>
+    </div>
+    <div class="stat-pill" id="menuStatPill"></div>
+
+    <button class="block" onclick="startSession('all')">Study All 128 Cards</button>
+    <button class="block secondary" id="btnMissed" onclick="startSession('missed')">Review Cards I Often Miss</button>
+    <button class="block secondary" onclick="showStats()">View My Stats</button>
+    <button class="block secondary danger" onclick="confirmReset()">Reset My Progress</button>
+
+    <div class="footer-note">Progress is stored in this browser only (localStorage). Clearing your browser data will erase it.</div>
+  </div>
+
+  <!-- ============ FLASHCARD SCREEN ============ -->
+  <div id="screen-flashcard" class="hidden">
+    <div id="guestBanner" class="guest-banner hidden">Guest mode &mdash; nothing is being saved.</div>
+    <div class="session-bar">
+      <span id="sessionLabel"></span>
+      <button class="link-btn" onclick="exitToMenuOrLogin()">Exit</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="sessionProgressFill" style="width:0%"></div></div>
+
+    <div class="flashcard-container">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="flashcard-face flashcard-front" id="cardFront"></div>
+        <div class="flashcard-face flashcard-back" id="cardBack">
+          <div class="back-label">Accepted answers</div>
+          <ul id="cardBackList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-hint" id="flipHint">Click the card to reveal the answer</div>
+
+    <!-- graded mode controls (logged-in users) -->
+    <div class="grade-row hidden" id="gradeRow">
+      <button class="danger" onclick="grade(false)">&#10007; I missed it</button>
+      <button class="success" onclick="grade(true)">&#10003; Got it right</button>
+    </div>
+
+    <!-- guest mode controls -->
+    <div class="nav-row hidden" id="guestNavRow">
+      <button class="secondary" onclick="guestPrev()">&larr; Previous</button>
+      <button onclick="guestNext()">Next &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ============ SUMMARY SCREEN ============ -->
+  <div id="screen-summary" class="hidden">
+    <h1>Round Complete</h1>
+    <p class="score-big" id="summaryScore"></p>
+    <p class="score-label" id="summaryLabel"></p>
+    <div class="btn-row center" style="margin-bottom:10px;">
+      <button onclick="restartSameMode()">Do It Again</button>
+      <button class="secondary" onclick="showStats()">View Stats</button>
+      <button class="secondary" onclick="goToMenuFromSummary()">Back to Menu</button>
+    </div>
+  </div>
+
+  <!-- ============ STATS SCREEN ============ -->
+  <div id="screen-stats" class="hidden">
+    <h1>My Stats</h1>
+    <div class="subtitle" id="statsSubtitle"></div>
+
+    <div class="stats-summary">
+      <div class="stats-box"><div class="num" id="statCardsSeen">0</div><div class="lbl">Cards Studied</div></div>
+      <div class="stats-box"><div class="num" id="statAccuracy">&mdash;</div><div class="lbl">Overall Accuracy</div></div>
+      <div class="stats-box"><div class="num" id="statAttempts">0</div><div class="lbl">Total Attempts</div></div>
+    </div>
+
+    <div class="stats-scroll">
+      <table class="stats-table">
+        <thead>
+          <tr><th style="width:52%;">Question</th><th>Correct</th><th>Missed</th><th>Accuracy</th></tr>
+        </thead>
+        <tbody id="statsTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="secondary" onclick="goToMenuFromStats()">Back to Menu</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// QUESTION BANK as a 2D array.
+// Each row: [ question, correctAnswer1, correctAnswer2, ... ]
+// Add, remove, or edit rows freely -- the rest of the program
+// just reads from this array by index, so no other code needs to change.
+// ---------------------------------------------------------------
+const QUESTION_BANK = [["What is the form of government of the United States?", "Republic", "Constitution-based federal republic", "Representative democracy"], ["What is the supreme law of the land?", "(U.S.) Constitution", "U.S. Constitution", "Constitution"], ["Name one thing the U.S. Constitution does.", "Forms the government", "Defines powers of government", "Defines the parts of government", "Protects the rights of the people"], ["The U.S. Constitution starts with the words “We the People.” What does “We the People” mean?", "Self-government", "Popular sovereignty", "Consent of the governed", "People should govern themselves", "Social contract"], ["How are changes made to the U.S. Constitution?", "Amendments", "The amendment process"], ["What does the Bill of Rights protect?", "The basic rights of Americans", "The basic rights of people living in the United States", "Rights of Americans", "Rights of people living in the United States"], ["How many amendments does the U.S. Constitution have?", "Twenty-seven (27)", "27"], ["Why is the Declaration of Independence important?", "It says America is free from British control.", "It says all people are created equal.", "It identifies inherent rights.", "It identifies individual freedoms."], ["What founding document said the American colonies were free from Britain?", "Declaration of Independence"], ["Name two important ideas from the Declaration of Independence and the U.S. Constitution.", "Equality", "Liberty", "Social contract", "Natural rights", "Limited government", "Self-government"], ["The words “Life, Liberty, and the pursuit of Happiness” are in what founding document?", "Declaration of Independence"], ["What is the economic system of the United States?", "Capitalism", "Free market economy"], ["What is the rule of law?", "Everyone must follow the law.", "Leaders must obey the law.", "Government must obey the law.", "No one is above the law."], ["Many documents influenced the U.S. Constitution. Name one.", "Declaration of Independence", "Articles of Confederation", "Federalist Papers", "Anti-Federalist Papers", "Virginia Declaration of Rights", "Fundamental Orders of Connecticut", "Mayflower Compact", "Iroquois Great Law of Peace"], ["There are three branches of government. Why?", "So one part does not become too powerful", "Checks and balances", "Separation of powers"], ["Name the three branches of government.", "Legislative, executive, and judicial", "Congress, president, and the courts"], ["The President of the United States is in charge of which branch of government?", "Executive branch"], ["What part of the federal government writes laws?", "(U.S.) Congress", "U.S. Congress", "Congress", "(U.S. or national) legislature", "National legislature", "Legislature", "Legislative branch"], ["What are the two parts of the U.S. Congress?", "Senate and House (of Representatives)", "Senate and House of Representatives"], ["Name one power of the U.S. Congress.", "Writes laws", "Declares war", "Makes the federal budget"], ["How many U.S. senators are there?", "One hundred (100)", "100"], ["How long is a term for a U.S. senator?", "Six (6) years", "6 years"], ["Who is one of your state’s U.S. senators now? (NC)", "Thom Tillis", "Ted Budd"], ["How many voting members are in the House of Representatives?", "Four hundred thirty-five (435)", "435"], ["How long is a term for a member of the House of Representatives?", "Two (2) years", "2 years"], ["Why do U.S. representatives serve shorter terms than U.S. senators?", "To more closely follow public opinion"], ["How many senators does each state have?", "Two (2)", "2"], ["Why does each state have two senators?", "Equal representation (for small states)", "The Great Compromise (Connecticut Compromise)"], ["Name your U.S. representative. (Matthews, NC — 28105 straddles NC-8 and NC-12)", "Mark Harris", "Alma Adams"], ["What is the name of the Speaker of the House of Representatives now?", "Mike Johnson"], ["Who does a U.S. senator represent?", "Citizens of their state", "People of their state"], ["Who elects U.S. senators?", "Citizens from their state"], ["Who does a member of the House of Representatives represent?", "Citizens in their (congressional) district", "People in their (congressional) district"], ["Who elects members of the House of Representatives?", "Citizens from their (congressional) district"], ["Some states have more representatives than other states. Why?", "(Because of) the state’s population", "(Because) they have more people"], ["The President of the United States is elected for how many years?", "Four (4) years", "4 years"], ["The President of the United States can serve only two terms. Why?", "(Because of) the 22nd Amendment", "To keep the president from becoming too powerful"], ["What is the name of the President of the United States now?", "Donald Trump", "Donald J. Trump", "Trump"], ["What is the name of the Vice President of the United States now?", "JD Vance", "J.D. Vance", "Vance"], ["If the president can no longer serve, who becomes president?", "The Vice President (of the United States)"], ["Name one power of the president.", "Signs bills into law", "Vetoes bills", "Enforces laws", "Commander in Chief (of the military)", "Chief diplomat", "Appoints federal judges"], ["Who is Commander in Chief of the U.S. military?", "The President (of the United States)"], ["Who signs bills to become laws?", "The President (of the United States)"], ["Who vetoes bills?", "The President (of the United States)"], ["Who appoints federal judges?", "The President (of the United States)"], ["The executive branch has many parts. Name one.", "President (of the United States)", "Cabinet", "Federal departments and agencies"], ["What does the President’s Cabinet do?", "Advises the President (of the United States)"], ["What are two Cabinet-level positions?", "Attorney General", "Secretary of Agriculture", "Secretary of Commerce", "Secretary of Education", "Secretary of Energy", "Secretary of Health and Human Services", "Secretary of Homeland Security", "Secretary of Housing and Urban Development", "Secretary of the Interior", "Secretary of Labor", "Secretary of State", "Secretary of Transportation", "Secretary of the Treasury", "Secretary of Veterans Affairs", "Secretary of War (Defense)", "Vice-President", "Administrator of the Environmental Protection Agency", "Administrator of the Small Business Administration", "Director of the Central Intelligence Agency", "Director of the Office of Management and Budget", "Director of National Intelligence", "United States Trade Representative"], ["Why is the Electoral College important?", "It decides who is elected president.", "It provides a compromise between the popular election of the president and congressional selection."], ["What is one part of the judicial branch?", "Supreme Court", "Federal Courts"], ["What does the judicial branch do?", "Reviews laws", "Explains laws", "Resolves disputes (disagreements) about the law", "Decides if a law goes against the (U.S.) Constitution"], ["What is the highest court in the United States?", "Supreme Court"], ["How many seats are on the Supreme Court?", "Nine (9)", "9"], ["How many Supreme Court justices are usually needed to decide a case?", "Five (5)", "5"], ["How long do Supreme Court justices serve?", "(For) life", "Lifetime appointment", "(Until) retirement"], ["Supreme Court justices serve for life. Why?", "To be independent (of politics)", "To limit outside (political) influence"], ["Who is the Chief Justice of the United States now?", "John Roberts", "John G. Roberts"], ["Name one power that is only for the federal government.", "Print paper money", "Mint coins", "Declare war", "Create an army", "Make treaties", "Set foreign policy"], ["Name one power that is only for the states.", "Provide schooling and education", "Provide protection (police)", "Provide safety (fire departments)", "Give a driver’s license", "Approve zoning and land use"], ["What is the purpose of the 10th Amendment?", "(It states that the) powers not given to the federal government belong to the states or to the people."], ["Who is the governor of your state now? (NC)", "Josh Stein"], ["What is the capital of your state? (NC)", "Raleigh"], ["There are four amendments to the U.S. Constitution about who can vote. Describe one of them.", "Citizens eighteen (18) and older can vote.", "You don’t have to pay a poll tax to vote.", "Any citizen can vote (women and men can vote).", "A male citizen of any race can vote."], ["Who can vote in federal elections, run for federal office, and serve on a jury in the United States?", "Citizens", "Citizens of the United States", "U.S. citizens"], ["What are three rights of everyone living in the United States?", "Freedom of expression", "Freedom of speech", "Freedom of assembly", "Freedom to petition the government", "Freedom of religion", "The right to bear arms"], ["What do we show loyalty to when we say the Pledge of Allegiance?", "The United States", "The flag"], ["Name two promises that new citizens make in the Oath of Allegiance.", "Give up loyalty to other countries", "Defend the (U.S.) Constitution", "Obey the laws of the United States", "Serve in the military (if needed)", "Serve (help, do important work for) the nation (if needed)", "Be loyal to the United States"], ["How can people become United States citizens?", "Be born in the United States (14th Amendment)", "Naturalize", "Derive citizenship (under conditions set by Congress)"], ["What are two examples of civic participation in the United States?", "Vote", "Run for office", "Join a political party", "Help with a campaign", "Join a civic group", "Join a community group", "Give an elected official your opinion (on an issue)", "Contact elected officials", "Support or oppose an issue or policy", "Write to a newspaper"], ["What is one way Americans can serve their country?", "Vote", "Pay taxes", "Obey the law", "Serve in the military", "Run for office", "Work for local, state, or federal government"], ["Why is it important to pay federal taxes?", "Required by law", "All people pay to fund the federal government", "Required by the (U.S.) Constitution (16th Amendment)", "Civic duty"], ["It is important for all men age 18 through 25 to register for the Selective Service. Name one reason why.", "Required by law", "Civic duty", "Makes the draft fair, if needed"], ["The colonists came to America for many reasons. Name one.", "Freedom", "Political liberty", "Religious freedom", "Economic opportunity", "Escape persecution"], ["Who lived in America before the Europeans arrived?", "American Indians", "Native Americans"], ["What group of people was taken and sold as slaves?", "Africans", "People from Africa"], ["What war did the Americans fight to win independence from Britain?", "American Revolution", "The (American) Revolutionary War", "War for (American) Independence"], ["Name one reason why the Americans declared independence from Britain.", "High taxes", "Taxation without representation", "British soldiers stayed in Americans’ houses (boarding, quartering)", "They did not have self-government", "Boston Massacre", "Boston Tea Party (Tea Act)", "Stamp Act", "Sugar Act", "Townshend Acts", "Intolerable (Coercive) Acts"], ["Who wrote the Declaration of Independence?", "(Thomas) Jefferson"], ["When was the Declaration of Independence adopted?", "July 4, 1776"], ["The American Revolution had many important events. Name one.", "(Battle of) Bunker Hill", "Declaration of Independence", "Washington Crossing the Delaware (Battle of Trenton)", "(Battle of) Saratoga", "Valley Forge (Encampment)", "(Battle of) Yorktown (British surrender at Yorktown)"], ["There were 13 original states. Name five.", "New Hampshire", "Massachusetts", "Rhode Island", "Connecticut", "New York", "New Jersey", "Pennsylvania", "Delaware", "Maryland", "Virginia", "North Carolina", "South Carolina", "Georgia"], ["What founding document was written in 1787?", "(U.S.) Constitution"], ["The Federalist Papers supported the passage of the U.S. Constitution. Name one of the writers.", "(James) Madison", "(Alexander) Hamilton", "(John) Jay", "Publius"], ["Why were the Federalist Papers important?", "They helped people understand the (U.S.) Constitution.", "They supported passing the (U.S.) Constitution."], ["Benjamin Franklin is famous for many things. Name one.", "Founded the first free public libraries", "First Postmaster General of the United States", "Helped write the Declaration of Independence", "Inventor", "U.S. diplomat"], ["George Washington is famous for many things. Name one.", "“Father of Our Country”", "First president of the United States", "General of the Continental Army", "President of the Constitutional Convention"], ["Thomas Jefferson is famous for many things. Name one.", "Writer of the Declaration of Independence", "Third president of the United States", "Doubled the size of the United States (Louisiana Purchase)", "First Secretary of State", "Founded the University of Virginia", "Writer of the Virginia Statute on Religious Freedom"], ["James Madison is famous for many things. Name one.", "“Father of the Constitution”", "Fourth president of the United States", "President during the War of 1812", "One of the writers of the Federalist Papers"], ["Alexander Hamilton is famous for many things. Name one.", "First Secretary of the Treasury", "One of the writers of the Federalist Papers", "Helped establish the First Bank of the United States", "Aide to General George Washington", "Member of the Continental Congress"], ["What territory did the United States buy from France in 1803?", "Louisiana Territory", "Louisiana"], ["Name one war fought by the United States in the 1800s.", "War of 1812", "Mexican-American War", "Civil War", "Spanish-American War"], ["Name the U.S. war between the North and the South.", "The Civil War"], ["The Civil War had many important events. Name one.", "(Battle of) Fort Sumter", "Emancipation Proclamation", "(Battle of) Vicksburg", "(Battle of) Gettysburg", "Sherman’s March", "(Surrender at) Appomattox", "(Battle of) Antietam/Sharpsburg", "Lincoln was assassinated."], ["Abraham Lincoln is famous for many things. Name one.", "Freed the slaves (Emancipation Proclamation)", "Saved (or preserved) the Union", "Led the United States during the Civil War", "16th president of the United States", "Delivered the Gettysburg Address"], ["What did the Emancipation Proclamation do?", "Freed the slaves", "Freed slaves in the Confederacy", "Freed slaves in the Confederate states", "Freed slaves in most Southern states"], ["What U.S. war ended slavery?", "The Civil War"], ["What amendment says all persons born or naturalized in the United States, and subject to the jurisdiction thereof, are U.S. citizens?", "14th Amendment"], ["When did all men get the right to vote?", "After the Civil War", "During Reconstruction", "(With the) 15th Amendment", "1870"], ["Name one leader of the women’s rights movement in the 1800s.", "Susan B. Anthony", "Elizabeth Cady Stanton", "Sojourner Truth", "Harriet Tubman", "Lucretia Mott", "Lucy Stone"], ["Name one war fought by the United States in the 1900s.", "World War I", "World War II", "Korean War", "Vietnam War", "(Persian) Gulf War"], ["Why did the United States enter World War I?", "Because Germany attacked U.S. (civilian) ships", "To support the Allied Powers (England, France, Italy, and Russia)", "To oppose the Central Powers (Germany, Austria-Hungary, the Ottoman Empire, and Bulgaria)"], ["When did all women get the right to vote?", "1920", "After World War I", "(With the) 19th Amendment"], ["What was the Great Depression?", "Longest economic recession in modern history"], ["When did the Great Depression start?", "The Great Crash (1929)", "Stock market crash of 1929"], ["Who was president during the Great Depression and World War II?", "(Franklin) Roosevelt"], ["Why did the United States enter World War II?", "(Bombing of) Pearl Harbor", "Japanese attacked Pearl Harbor", "To support the Allied Powers (England, France, and Russia)", "To oppose the Axis Powers (Germany, Italy, and Japan)"], ["Dwight Eisenhower is famous for many things. Name one.", "General during World War II", "President at the end of (during) the Korean War", "34th president of the United States", "Signed the Federal-Aid Highway Act of 1956 (Created the Interstate System)"], ["Who was the United States’ main rival during the Cold War?", "Soviet Union", "USSR", "Russia"], ["During the Cold War, what was one main concern of the United States?", "Communism", "Nuclear war"], ["Why did the United States enter the Korean War?", "To stop the spread of communism"], ["Why did the United States enter the Vietnam War?", "To stop the spread of communism"], ["What did the civil rights movement do?", "Fought to end racial discrimination"], ["Martin Luther King, Jr. is famous for many things. Name one.", "Fought for civil rights", "Worked for equality for all Americans", "Worked to ensure that people would be judged by the content of their character, not the color of their skin"], ["Why did the United States enter the Persian Gulf War?", "To force the Iraqi military from Kuwait"], ["What major event happened on September 11, 2001 in the United States?", "Terrorists attacked the United States", "Terrorists took over two planes and crashed them into the World Trade Center in New York City", "Terrorists took over a plane and crashed into the Pentagon in Arlington, Virginia", "Terrorists took over a plane originally aimed at Washington, D.C., and crashed in a field in Pennsylvania"], ["Name one U.S. military conflict after the September 11, 2001 attacks.", "(Global) War on Terror", "War in Afghanistan", "War in Iraq"], ["Name one American Indian tribe in the United States.", "Apache", "Blackfeet", "Cayuga", "Cherokee", "Cheyenne", "Chippewa", "Choctaw", "Creek", "Crow", "Hopi", "Huron", "Inupiat", "Lakota", "Mohawk", "Mohegan", "Navajo", "Oneida", "Onondaga", "Pueblo", "Seminole", "Seneca", "Shawnee", "Sioux", "Teton", "Tuscarora"], ["Name one example of an American innovation.", "Light bulb", "Automobile (cars, internal combustion engine)", "Skyscrapers", "Airplane", "Assembly line", "Landing on the moon", "Integrated circuit (IC)"], ["What is the capital of the United States?", "Washington, D.C."], ["Where is the Statue of Liberty?", "New York (Harbor)", "Liberty Island", "New Jersey", "Near New York City", "On the Hudson (River)"], ["Why does the flag have 13 stripes?", "(Because there were) 13 original colonies", "(Because the stripes) represent the original colonies"], ["Why does the flag have 50 stars?", "(Because there is) one star for each state", "(Because) each star represents a state", "(Because there are) 50 states"], ["What is the name of the national anthem?", "The Star-Spangled Banner"], ["The Nation’s first motto was “E Pluribus Unum.” What does that mean?", "Out of many, one", "We all become one"], ["What is Independence Day?", "A holiday to celebrate U.S. independence (from Britain)", "The country’s birthday"], ["Name three national U.S. holidays.", "New Year’s Day", "Martin Luther King, Jr. Day", "Presidents Day (Washington’s Birthday)", "Memorial Day", "Juneteenth", "Independence Day", "Labor Day", "Columbus Day", "Veterans Day", "Thanksgiving Day", "Christmas Day"], ["What is Memorial Day?", "A holiday to honor soldiers who died in military service"], ["What is Veterans Day?", "A holiday to honor people in the (U.S.) military", "A holiday to honor people who have served (in the U.S. military)"]];
+
+const STORAGE_KEY = 'civics_flashcards_users_v1';
+const MISSED_MIN_ATTEMPTS = 1;      // a card counts as "often missed" once it has at least 1 miss...
+const MISSED_ACCURACY_CEILING = 0.6; // ...and its accuracy is at or below this
+
+// ---------------------------------------------------------------
+// Persistence helpers (localStorage-based, per named user)
+// Shape: { "Alice": { "0": {c:2,i:1}, "5": {c:0,i:3} }, "Bob": {...} }
+// c = correct count, i = incorrect count, keyed by QUESTION_BANK index (string)
+// ---------------------------------------------------------------
+function loadAllUsers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveAllUsers(obj) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  } catch (e) {
+    // storage unavailable; fail silently, session still works in-memory
+  }
+}
+function getUserData(name) {
+  const all = loadAllUsers();
+  return all[name] || {};
+}
+function saveUserData(name, data) {
+  const all = loadAllUsers();
+  all[name] = data;
+  saveAllUsers(all);
+}
+
+// ---------------------------------------------------------------
+// App state
+// ---------------------------------------------------------------
+let currentUser = null;     // string name, or null for guest
+let isGuest = false;
+let deck = [];               // array of QUESTION_BANK indices for this session
+let pos = 0;                 // position within deck
+let sessionMode = 'all';     // 'all' | 'missed'
+let sessionResults = { correct: 0, incorrect: 0 };
+let userData = {};           // working copy of currentUser's stats, saved after each grade
+
+function showScreen(id) {
+  document.querySelectorAll('.card > div[id^="screen-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function shuffle(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ---------------------------------------------------------------
+// LOGIN SCREEN
+// ---------------------------------------------------------------
+function renderUserList() {
+  const all = loadAllUsers();
+  const names = Object.keys(all);
+  const wrap = document.getElementById('userListWrap');
+  const list = document.getElementById('userList');
+  if (names.length === 0) {
+    wrap.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+  wrap.classList.remove('hidden');
+  list.innerHTML = names.map(n =>
+    '<button onclick="quickLogin(' + JSON.stringify(n) + ')">' + escapeHtml(n) + '</button>'
+  ).join('');
+}
+
+function quickLogin(name) {
+  document.getElementById('loginName').value = name;
+  loginOrRegister();
+}
+
+function loginOrRegister() {
+  const input = document.getElementById('loginName');
+  const name = input.value.trim();
+  if (!name) {
+    input.focus();
+    return;
+  }
+  currentUser = name;
+  isGuest = false;
+  userData = getUserData(currentUser);
+  input.value = '';
+  showMenu();
+}
+
+function startGuest() {
+  currentUser = null;
+  isGuest = true;
+  showScreen('screen-flashcard');
+  startSession('all');
+}
+
+function goToLogin() {
+  currentUser = null;
+  isGuest = false;
+  renderUserList();
+  showScreen('screen-login');
+}
+
+// ---------------------------------------------------------------
+// MENU SCREEN
+// ---------------------------------------------------------------
+function computeOverallStats(data) {
+  let attempts = 0, correct = 0, seen = 0;
+  for (const idx in data) {
+    const rec = data[idx];
+    const total = (rec.c || 0) + (rec.i || 0);
+    if (total > 0) seen++;
+    attempts += total;
+    correct += (rec.c || 0);
+  }
+  return { attempts, correct, seen };
+}
+
+function getMissedIndices(data) {
+  const out = [];
+  for (const idx in data) {
+    const rec = data[idx];
+    const total = (rec.c || 0) + (rec.i || 0);
+    if (total === 0) continue;
+    const acc = (rec.c || 0) / total;
+    if ((rec.i || 0) >= MISSED_MIN_ATTEMPTS && acc <= MISSED_ACCURACY_CEILING) {
+      out.push(parseInt(idx, 10));
+    }
+  }
+  return out;
+}
+
+function showMenu() {
+  document.getElementById('menuGreeting').textContent = 'Hi, ' + currentUser + '!';
+  const stats = computeOverallStats(userData);
+  const pct = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : null;
+  document.getElementById('menuStatPill').textContent =
+    stats.seen + ' / ' + QUESTION_BANK.length + ' cards studied' +
+    (pct !== null ? '  \u00b7  ' + pct + '% overall accuracy' : '');
+
+  const missed = getMissedIndices(userData);
+  const btnMissed = document.getElementById('btnMissed');
+  btnMissed.disabled = missed.length === 0;
+  btnMissed.textContent = missed.length > 0
+    ? 'Review Cards I Often Miss (' + missed.length + ')'
+    : 'Review Cards I Often Miss (none yet)';
+
+  showScreen('screen-menu');
+}
+
+function confirmReset() {
+  if (!confirm('Reset all saved progress for ' + currentUser + '? This can\'t be undone.')) return;
+  userData = {};
+  saveUserData(currentUser, userData);
+  showMenu();
+}
+
+// ---------------------------------------------------------------
+// SESSION / FLASHCARD SCREEN
+// ---------------------------------------------------------------
+function startSession(mode) {
+  sessionMode = mode;
+  sessionResults = { correct: 0, incorrect: 0 };
+
+  let indices;
+  if (mode === 'missed' && !isGuest) {
+    indices = getMissedIndices(userData);
+  } else {
+    indices = QUESTION_BANK.map((_, i) => i);
+  }
+  deck = shuffle(indices);
+  pos = 0;
+
+  document.getElementById('guestBanner').classList.toggle('hidden', !isGuest);
+  document.getElementById('gradeRow').classList.toggle('hidden', isGuest);
+  document.getElementById('guestNavRow').classList.toggle('hidden', !isGuest);
+
+  showScreen('screen-flashcard');
+  renderCard();
+}
+
+function restartSameMode() {
+  startSession(sessionMode);
+}
+
+function renderCard() {
+  const idx = deck[pos];
+  const row = QUESTION_BANK[idx];
+  const question = row[0];
+  const answers = row.slice(1);
+
+  document.getElementById('cardFront').textContent = question;
+  document.getElementById('cardBackList').innerHTML =
+    answers.map(a => '<li>' + escapeHtml(a) + '</li>').join('');
+
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('flipHint').textContent = 'Click the card to reveal the answer';
+  document.getElementById('gradeRow').style.visibility = 'hidden';
+
+  const modeLabel = sessionMode === 'missed' ? 'Reviewing missed cards' : 'Studying all cards';
+  document.getElementById('sessionLabel').textContent =
+    (isGuest ? 'Guest' : modeLabel) + ' \u00b7 Card ' + (pos + 1) + ' of ' + deck.length;
+  document.getElementById('sessionProgressFill').style.width = (pos / deck.length * 100) + '%';
+}
+
+function flipCard() {
+  const el = document.getElementById('flashcard');
+  const flipped = el.classList.toggle('flipped');
+  document.getElementById('flipHint').textContent = flipped
+    ? (isGuest ? 'Click the card to flip back' : 'How did you do?')
+    : 'Click the card to reveal the answer';
+  if (!isGuest) {
+    document.getElementById('gradeRow').style.visibility = flipped ? 'visible' : 'hidden';
+  }
+}
+
+function grade(isCorrect) {
+  const idx = deck[pos];
+  if (!userData[idx]) userData[idx] = { c: 0, i: 0 };
+  if (isCorrect) {
+    userData[idx].c = (userData[idx].c || 0) + 1;
+    sessionResults.correct++;
+  } else {
+    userData[idx].i = (userData[idx].i || 0) + 1;
+    sessionResults.incorrect++;
+  }
+  saveUserData(currentUser, userData);
+  advance();
+}
+
+function advance() {
+  pos++;
+  if (pos >= deck.length) {
+    showSummary();
+  } else {
+    renderCard();
+  }
+}
+
+function guestNext() {
+  if (pos < deck.length - 1) {
+    pos++;
+    renderCard();
+  } else {
+    showSummary();
+  }
+}
+function guestPrev() {
+  if (pos > 0) {
+    pos--;
+    renderCard();
+  }
+}
+
+function exitToMenuOrLogin() {
+  if (isGuest) {
+    goToLogin();
+  } else {
+    showMenu();
+  }
+}
+
+// ---------------------------------------------------------------
+// SUMMARY SCREEN
+// ---------------------------------------------------------------
+function showSummary() {
+  if (isGuest) {
+    // Guests just loop back to the menu-equivalent (login screen has no menu),
+    // so give them a simple completion message via the summary screen.
+    document.getElementById('summaryScore').textContent = deck.length + ' cards';
+    document.getElementById('summaryLabel').textContent = 'You made it through the guest deck.';
+  } else {
+    const total = sessionResults.correct + sessionResults.incorrect;
+    document.getElementById('summaryScore').textContent =
+      sessionResults.correct + ' / ' + total;
+    const pct = total > 0 ? Math.round((sessionResults.correct / total) * 100) : 0;
+    document.getElementById('summaryLabel').textContent = pct + '% correct this round';
+  }
+  showScreen('screen-summary');
+}
+
+function goToMenuFromSummary() {
+  if (isGuest) {
+    goToLogin();
+  } else {
+    showMenu();
+  }
+}
+
+// ---------------------------------------------------------------
+// STATS SCREEN
+// ---------------------------------------------------------------
+function showStats() {
+  const stats = computeOverallStats(userData);
+  const pct = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : null;
+
+  document.getElementById('statsSubtitle').textContent = 'Stats for ' + currentUser;
+  document.getElementById('statCardsSeen').textContent = stats.seen + ' / ' + QUESTION_BANK.length;
+  document.getElementById('statAccuracy').textContent = pct !== null ? pct + '%' : '\u2014';
+  document.getElementById('statAttempts').textContent = stats.attempts;
+
+  const rows = QUESTION_BANK.map((row, idx) => {
+    const rec = userData[idx] || { c: 0, i: 0 };
+    const total = (rec.c || 0) + (rec.i || 0);
+    const acc = total > 0 ? Math.round((rec.c / total) * 100) : null;
+    return { idx, question: row[0], c: rec.c || 0, i: rec.i || 0, total, acc };
+  });
+
+  // Studied cards first, worst accuracy at top; unstudied cards last.
+  rows.sort((a, b) => {
+    if (a.total === 0 && b.total === 0) return 0;
+    if (a.total === 0) return 1;
+    if (b.total === 0) return -1;
+    return a.acc - b.acc;
+  });
+
+  document.getElementById('statsTableBody').innerHTML = rows.map(r => {
+    let accCell;
+    if (r.total === 0) {
+      accCell = '<span class="acc-none">not studied</span>';
+    } else if (r.acc <= 60) {
+      accCell = '<span class="acc-bad">' + r.acc + '%</span>';
+    } else {
+      accCell = '<span class="acc-good">' + r.acc + '%</span>';
+    }
+    return '<tr>' +
+      '<td>' + escapeHtml(r.question) + '</td>' +
+      '<td>' + r.c + '</td>' +
+      '<td>' + r.i + '</td>' +
+      '<td>' + accCell + '</td>' +
+      '</tr>';
+  }).join('');
+
+  showScreen('screen-stats');
+}
+
+function goToMenuFromStats() {
+  showMenu();
+}
+
+// ---------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------
+renderUserList();
+document.getElementById('loginName').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') loginOrRegister();
+});
+</script>
+
+</body>
+</html>
